@@ -50,6 +50,13 @@ jobs:
         python -m pip install --upgrade pip setuptools
         pip install buildozer cython
 
+    # 關鍵修正：自動同意 Android SDK 授權條款
+    - name: Accept Android SDK Licenses
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
     - name: Build APK with Buildozer
       run: |
         buildozer android debug
