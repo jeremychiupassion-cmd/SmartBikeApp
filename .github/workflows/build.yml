@@ -15,10 +15,10 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Build APK with Buildozer Action
-      uses: kivy/buildozer-action@v1.2
+      uses: ArtemSzymanskii/buildozer-action@v1.2
       with:
         command: buildozer android debug
-        buildozer_version: stable
+        buildozer_version: master
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
