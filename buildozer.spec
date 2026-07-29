@@ -9,6 +9,9 @@ package.name = smartbikeapp
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.example
 
+# (str) Application version (關鍵修正：Buildozer 強制要求此欄位)
+version = 0.1
+
 # (str) Source code where the main.py live
 source.dir = .
 
@@ -16,8 +19,17 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf
 
 # (list) Application requirements
-# 已加入專案所需的 plyer 與 pyjnius 套件
+# 注意：已加入專案所需的 plyer 與 pyjnius 套件
 requirements = python3,kivy,plyer,pyjnius
+
+# (str) Custom source folders for requirements
+# requirements.source.kivy =
+
+# (str) Presplash of the application
+#presplash.filename = %(source.dir)s/data/presplash.png
+
+# (str) Icon of the application
+#icon.filename = %(source.dir)s/data/icon.png
 
 # (str) Supported orientations (one of landscape, sensorLandscape, portrait or all)
 orientation = portrait
