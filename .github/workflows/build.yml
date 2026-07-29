@@ -48,18 +48,13 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip setuptools
-        pip install buildozer cython
-
-    # 關鍵修正：自動同意 Android SDK 授權條款
-    - name: Accept Android SDK Licenses
-      run: |
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        pip install "cython<3.0.0" "buildozer==1.5.0"
 
     - name: Build APK with Buildozer
+      env:
+        ACCEPT_BUILD_TOOLS_CHECKSUM: "true"
       run: |
-        buildozer android debug
+        yes | buildozer android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
