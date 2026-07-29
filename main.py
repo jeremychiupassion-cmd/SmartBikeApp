@@ -1,4 +1,3 @@
-%%writefile main.py
 import kivy
 from kivy.app import App
 from kivy.uix.widget import Widget
@@ -319,7 +318,7 @@ class SmartBikeApp(App):
         root.add_widget(self.dashboard)
         
         self.speed_label = Label(
-            text="定位中...", font_size='40sp', bold=True, color=(1, 1, 1, 1),
+            text="0 km/h", font_size='40sp', bold=True, color=(1, 1, 1, 1),
             pos_hint={'center_x': 0.5, 'top': 0.95}, size_hint=(None, None)
         )
         root.add_widget(self.speed_label)
@@ -328,14 +327,18 @@ class SmartBikeApp(App):
             orientation='horizontal', size_hint=(0.9, 0.08),  
             pos_hint={'center_x': 0.5, 'y': 0.03}, spacing=10              
         )
-        btn_red = Button(text="紅", background_normal='', background_color=(1, 0.2, 0.2, 1))
+        btn_red = Button(text="RED", background_normal='', background_color=(1, 0.2, 0.2, 1))
         btn_red.bind(on_press=lambda x: self.dashboard.set_color((1, 0.1, 0.1)))
-        btn_green = Button(text="綠", background_normal='', background_color=(0.2, 1, 0.2, 1))
+        
+        btn_green = Button(text="GREEN", background_normal='', background_color=(0.2, 1, 0.2, 1))
         btn_green.bind(on_press=lambda x: self.dashboard.set_color((0.2, 1, 0.2)))
-        btn_blue = Button(text="藍", background_normal='', background_color=(0.2, 0.5, 1, 1))
+        
+        btn_blue = Button(text="BLUE", background_normal='', background_color=(0.2, 0.5, 1, 1))
         btn_blue.bind(on_press=lambda x: self.dashboard.set_color((0.2, 0.5, 1, 1)))
-        btn_orange = Button(text="橘", background_normal='', background_color=(1, 0.5, 0, 1))
+        
+        btn_orange = Button(text="ORANGE", background_normal='', background_color=(1, 0.5, 0, 1))
         btn_orange.bind(on_press=lambda x: self.dashboard.set_color((1, 0.5, 0)))
+        
         btn_layout.add_widget(btn_red)
         btn_layout.add_widget(btn_green)
         btn_layout.add_widget(btn_blue)
