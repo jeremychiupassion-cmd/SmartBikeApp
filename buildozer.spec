@@ -19,7 +19,8 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-requirements = python3,kivy,plyer,opencv,numpy
+# 鎖定 numpy==1.26.4 避免跨平台編譯衝突
+requirements = python3,kivy,plyer,opencv,numpy==1.26.4
 
 # (str) Supported orientations (橫屏顯示)
 orientation = landscape
@@ -32,8 +33,8 @@ fullscreen = 1
 # Android specific
 #
 
-# (list) Permissions
-android.permissions = INTERNET,RECORD_AUDIO,CAMERA,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION
+# (list) Permissions (已補齊錄音、相機、GPS 定位、聲音設定與網路權限)
+android.permissions = INTERNET,RECORD_AUDIO,CAMERA,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,MODIFY_AUDIO_SETTINGS
 
 # (bool) 啟用螢幕常亮
 android.wakelock = True
@@ -44,8 +45,7 @@ android.accept_sdk_license = True
 # (int) Target Android API
 android.api = 33
 
-# (int) Minimum API your APK will support.
-# 關鍵修正：將 minapi 從 21 提升至 24，滿足 numpy 編譯規範
+# (int) Minimum API your APK will support
 android.minapi = 24
 
 # (str) Android NDK version to use

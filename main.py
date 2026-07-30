@@ -92,44 +92,53 @@ class VehicleDetector:
     def stop(self):
         self.running = False
         if self.cap:
-            self.cap.release()
+            try:
+                self.cap.release()
+            except Exception:
+                pass
 
     def _process_camera(self):
-        # Android 前鏡頭通常 index 為 1
-        camera_idx = 1 if platform == 'android' else 0
-        self.cap = cv2.VideoCapture(camera_idx)
-        
-        if not self.cap.isOpened():
-            self.cap = cv2.VideoCapture(0)
+        # 容錯處理：安全開啟鏡頭
+        try:
+            camera_idx = 1 if platform == 'android' else 0
+            self.cap = cv2.VideoCapture(camera_idx)
+            if not self.cap.isOpened():
+                self.cap = cv2.VideoCapture(0)
+        except Exception:
+            return
 
         while self.running:
-            ret, frame = self.cap.read()
-            if not ret:
-                time.sleep(0.1)
-                continue
+            try:
+                ret, frame = self.cap.read()
+                if not ret or frame is None:
+                    time.sleep(0.1)
+                    continue
 
-            # 壓縮尺寸節省算力
-            frame = cv2.resize(frame, (320, 240))
-            fg_mask = self.bg_subtractor.apply(frame)
+                # 壓縮圖像加速計算
+                frame = cv2.resize(frame, (320, 240))
+                fg_mask = self.bg_subtractor.apply(frame)
 
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-            fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel)
+                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+                fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel)
 
-            contours, _ = cv2.findContours(fg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
-            max_area = 0
-            for cnt in contours:
-                area = cv2.contourArea(cnt)
-                if area > 1000: 
-                    if area > max_area:
-                        max_area = area
+                contours, _ = cv2.findContours(fg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                
+                max_area = 0
+                for cnt in contours:
+                    area = cv2.contourArea(cnt)
+                    if area > 1000: 
+                        if area > max_area:
+                            max_area = area
 
-            # 判斷面積暴增 (車輛急速靠近)
-            if self.prev_area > 0 and max_area > self.prev_area * 1.5 and max_area > 3000:
-                self.alert_callback()
+                # 判定車輛急速靠近
+                if self.prev_area > 0 and max_area > self.prev_area * 1.5 and max_area > 3000:
+                    # 安全修正：透過 Kivy Clock 安全投遞至主線程，避免跨線程繪圖閃退
+                    Clock.schedule_once(lambda dt: self.alert_callback(), 0)
 
-            self.prev_area = max_area
-            time.sleep(0.1) 
+                self.prev_area = max_area
+                time.sleep(0.1) 
+            except Exception:
+                time.sleep(0.2)
 
 # ==========================================
 # 中控台主程式
@@ -143,7 +152,6 @@ class BikeDashboard(Widget):
         self.light_color = (1.0, 0.5, 0.0) 
         self.sound_alert_enabled = True 
         
-        # 修正2：事先宣告 ToneGenerator 避免記憶體洩漏
         self.tone_gen = None
         if platform == 'android':
             try:
@@ -156,7 +164,6 @@ class BikeDashboard(Widget):
         self.speech_listener = None
         self.detector = None
         
-        # 修正3：冷卻時間與顏色備份狀態
         self.last_warning_time = 0
         self.backup_color = self.light_color
         
@@ -193,14 +200,13 @@ class BikeDashboard(Widget):
         self.detector.start()
 
     def trigger_approaching_warning(self):
-        # 修正3：加入 3 秒冷卻機制，避免警報狂叫
+        # 冷卻機制：防範重複觸發
         current_time = time.time()
         if current_time - self.last_warning_time > 3.0:
             self.last_warning_time = current_time
-            Clock.schedule_once(lambda dt: self._process_warning_ui(), 0)
+            self._process_warning_ui()
 
     def _process_warning_ui(self):
-        # 備份原來的顏色，並切換為紅色警告
         self.backup_color = self.light_color
         self.set_color((1.0, 0.0, 0.0))
         
@@ -210,7 +216,7 @@ class BikeDashboard(Widget):
             except Exception:
                 pass
                 
-        # 0.5 秒後恢復為原本的顏色
+        # 0.5 秒後恢復先前色彩
         Clock.schedule_once(self._restore_color, 0.5)
 
     def _restore_color(self, dt):
