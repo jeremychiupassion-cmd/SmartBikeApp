@@ -19,19 +19,9 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-# 關鍵修正：改用 opencv 與 numpy 觸發 p4a 原生 NDK 編譯，避免 PC 版混入造成閃退
 requirements = python3,kivy,plyer,opencv,numpy
 
-# (str) Custom source folders for requirements
-# requirements.source.kivy =
-
-# (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
-
-# (str) Icon of the application
-#icon.filename = %(source.dir)s/data/icon.png
-
-# (str) Supported orientations (鎖定橫屏顯示)
+# (str) Supported orientations (橫屏顯示)
 orientation = landscape
 
 # (bool) Indicate if the application should be fullscreen or not
@@ -42,10 +32,10 @@ fullscreen = 1
 # Android specific
 #
 
-# (list) Permissions (宣告錄音、相機、GPS 定位與網路權限)
+# (list) Permissions
 android.permissions = INTERNET,RECORD_AUDIO,CAMERA,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION
 
-# (bool) 啟用螢幕常亮 (防止騎車時自動黑屏)
+# (bool) 啟用螢幕常亮
 android.wakelock = True
 
 # (bool) Indicate if you want to accept SDK license automatically
@@ -55,7 +45,8 @@ android.accept_sdk_license = True
 android.api = 33
 
 # (int) Minimum API your APK will support.
-android.minapi = 21
+# 關鍵修正：將 minapi 從 21 提升至 24，滿足 numpy 編譯規範
+android.minapi = 24
 
 # (str) Android NDK version to use
 android.ndk = 25b
@@ -72,7 +63,7 @@ android.sdk_path =
 # (bool) Enable AndroidX support
 android.enable_androidx = True
 
-# (list) Architecture to build for (現代 64 位元晶片架構)
+# (list) Architecture to build for
 android.archs = arm64-v8a
 
 
@@ -82,7 +73,7 @@ android.archs = arm64-v8a
 
 [buildozer]
 
-# (int) Log level (0 = error only, 1 = info, 2 = debug)
+# (int) Log level
 log_level = 2
 
 # (int) Display warning if buildozer is run as root
