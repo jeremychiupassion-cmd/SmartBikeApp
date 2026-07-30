@@ -19,8 +19,8 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-# 鎖定 numpy==1.26.4 避免跨平台編譯衝突
-requirements = python3,kivy,plyer,opencv,numpy==1.26.4
+# 關鍵修正：還原為原生配方名稱 (不加 == 避免 git pathspec 錯誤)
+requirements = python3,kivy,plyer,opencv,numpy
 
 # (str) Supported orientations (橫屏顯示)
 orientation = landscape
@@ -33,7 +33,7 @@ fullscreen = 1
 # Android specific
 #
 
-# (list) Permissions (已補齊錄音、相機、GPS 定位、聲音設定與網路權限)
+# (list) Permissions
 android.permissions = INTERNET,RECORD_AUDIO,CAMERA,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,MODIFY_AUDIO_SETTINGS
 
 # (bool) 啟用螢幕常亮
@@ -43,7 +43,8 @@ android.wakelock = True
 android.accept_sdk_license = True
 
 # (int) Target Android API
-android.api = 33
+# 關鍵修正：切換至 API 31，這是目前 p4a + opencv + numpy 相容性最佳的 API 版本
+android.api = 31
 
 # (int) Minimum API your APK will support
 android.minapi = 24
