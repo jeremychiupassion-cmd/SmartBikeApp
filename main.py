@@ -98,7 +98,6 @@ class VehicleDetector:
                 pass
 
     def _process_camera(self):
-        # 容錯處理：安全開啟鏡頭
         try:
             camera_idx = 1 if platform == 'android' else 0
             self.cap = cv2.VideoCapture(camera_idx)
@@ -114,7 +113,6 @@ class VehicleDetector:
                     time.sleep(0.1)
                     continue
 
-                # 壓縮圖像加速計算
                 frame = cv2.resize(frame, (320, 240))
                 fg_mask = self.bg_subtractor.apply(frame)
 
@@ -130,9 +128,7 @@ class VehicleDetector:
                         if area > max_area:
                             max_area = area
 
-                # 判定車輛急速靠近
                 if self.prev_area > 0 and max_area > self.prev_area * 1.5 and max_area > 3000:
-                    # 安全修正：透過 Kivy Clock 安全投遞至主線程，避免跨線程繪圖閃退
                     Clock.schedule_once(lambda dt: self.alert_callback(), 0)
 
                 self.prev_area = max_area
@@ -150,7 +146,11 @@ class BikeDashboard(Widget):
         self.anim_step = 0
         self.flash_state = False
         self.light_color = (1.0, 0.5, 0.0) 
+        
+        # 狀態開關
         self.sound_alert_enabled = True 
+        self.speedometer_enabled = True
+        self.camera_enabled = True
         
         self.tone_gen = None
         if platform == 'android':
@@ -178,11 +178,13 @@ class BikeDashboard(Widget):
     def init_android_system(self, dt):
         if platform == 'android':
             try:
+                # 🛡️ 終極防護：改用原生字串避免 Kivy 舊版常數報錯閃退
                 request_permissions([
                     Permission.RECORD_AUDIO, 
                     Permission.CAMERA,
                     Permission.ACCESS_FINE_LOCATION,
-                    Permission.ACCESS_COARSE_LOCATION
+                    Permission.ACCESS_COARSE_LOCATION,
+                    "android.permission.MODIFY_AUDIO_SETTINGS" 
                 ], self.on_permissions_result)
             except Exception:
                 pass
@@ -190,17 +192,24 @@ class BikeDashboard(Widget):
             self.start_camera_detection()
 
     def on_permissions_result(self, permissions, grant_results):
-        if all(grant_results):
+        perms = dict(zip(permissions, grant_results))
+
+        if perms.get(Permission.RECORD_AUDIO, False):
             Clock.schedule_once(lambda dt: self.start_background_listening(), 1.0)
+
+        if perms.get(Permission.ACCESS_FINE_LOCATION, False) or perms.get(Permission.ACCESS_COARSE_LOCATION, False):
             Clock.schedule_once(lambda dt: self.start_gps(), 1.0)
+
+        if perms.get(Permission.CAMERA, False):
             Clock.schedule_once(lambda dt: self.start_camera_detection(), 2.0)
 
     def start_camera_detection(self):
+        if self.detector and self.detector.running:
+            return 
         self.detector = VehicleDetector(self.trigger_approaching_warning)
         self.detector.start()
 
     def trigger_approaching_warning(self):
-        # 冷卻機制：防範重複觸發
         current_time = time.time()
         if current_time - self.last_warning_time > 3.0:
             self.last_warning_time = current_time
@@ -216,7 +225,6 @@ class BikeDashboard(Widget):
             except Exception:
                 pass
                 
-        # 0.5 秒後恢復先前色彩
         Clock.schedule_once(self._restore_color, 0.5)
 
     def _restore_color(self, dt):
@@ -227,20 +235,57 @@ class BikeDashboard(Widget):
             try:
                 gps.configure(on_location=self.on_location, on_status=self.on_gps_status)
                 gps.start(minTime=1000, minDistance=1)
+                Clock.schedule_once(lambda dt: self.update_speed_ui(None, connecting=True), 0)
             except Exception: pass
 
     def on_location(self, **kwargs):
         speed_ms = kwargs.get('speed') or 0  
         Clock.schedule_once(lambda dt: self.update_speed_ui(speed_ms), 0)
 
-    def update_speed_ui(self, speed_ms):
+    def update_speed_ui(self, speed_ms, connecting=False):
+        if not self.speedometer_enabled: return
+            
         app = App.get_running_app()
-        if speed_ms > 0:
+        if connecting:
+            app.speed_label.text = "GPS 定位中..."
+            return
+            
+        if speed_ms is not None and speed_ms > 0:
             app.speed_label.text = f"{int(speed_ms * 3.6)} km/h"
         else:
             app.speed_label.text = "0 km/h"
 
     def on_gps_status(self, stype, status): pass
+
+    # ===============================
+    # 聲控各項功能切換
+    # ===============================
+    def toggle_speedometer(self, state):
+        self.speedometer_enabled = state
+        app = App.get_running_app()
+        if state:
+            app.speed_label.opacity = 1
+            self.start_gps()
+        else:
+            app.speed_label.opacity = 0
+            if platform == 'android':
+                try: gps.stop()
+                except Exception: pass
+
+    def toggle_camera_detection_state(self, state):
+        self.camera_enabled = state
+        app = App.get_running_app()
+        if state:
+            self.start_camera_detection()
+            if hasattr(app, 'cam_btn'):
+                app.cam_btn.text = "CAM: ON"
+                app.cam_btn.background_color = (0.2, 0.8, 0.2, 1)
+        else:
+            if self.detector:
+                self.detector.stop()
+            if hasattr(app, 'cam_btn'):
+                app.cam_btn.text = "CAM: OFF"
+                app.cam_btn.background_color = (0.5, 0.5, 0.5, 1)
 
     @run_on_ui_thread
     def start_background_listening(self):
@@ -272,17 +317,34 @@ class BikeDashboard(Widget):
             except Exception: pass
 
     def process_command(self, command):
+        # 方向與燈光控制
         if "左" in command or "向左" in command: self.mode = 'left'
         elif "右" in command or "向右" in command: self.mode = 'right'
         elif "正常" in command or "直行" in command: self.mode = 'straight'
         elif "開燈" in command or "亮燈" in command: self.toggle_flash(True)
         elif "關燈" in command or "熄滅" in command: self.toggle_flash(False)
+        
+        # 聲音警報控制
         elif "開啟警報" in command or "開警報" in command:
             self.sound_alert_enabled = True
             App.get_running_app().update_sound_btn_ui()
         elif "關閉警報" in command or "關警報" in command:
             self.sound_alert_enabled = False
             App.get_running_app().update_sound_btn_ui()
+            
+        # 鏡頭偵測控制
+        elif "開" in command and ("鏡頭" in command or "偵測" in command):
+            self.toggle_camera_detection_state(True)
+        elif "關" in command and ("鏡頭" in command or "偵測" in command):
+            self.toggle_camera_detection_state(False)
+            
+        # 時速表聲控
+        elif "開" in command and ("時速" in command or "速度" in command):
+            self.toggle_speedometer(True)
+        elif "關" in command and ("時速" in command or "速度" in command):
+            self.toggle_speedometer(False)
+            
+        # 顏色控制
         elif "紅" in command: self.set_color((1.0, 0.1, 0.1))
         elif "綠" in command: self.set_color((0.2, 1.0, 0.2))
         elif "藍" in command: self.set_color((0.2, 0.5, 1.0))
@@ -410,17 +472,25 @@ class SmartBikeApp(App):
         
         self.speed_label = Label(
             text="0 km/h", font_size='36sp', bold=True, color=(1, 1, 1, 1),
-            pos_hint={'center_x': 0.3, 'top': 0.98}, size_hint=(None, None)
+            pos_hint={'center_x': 0.3, 'top': 0.98}, size_hint=(None, None), opacity=1
         )
         root.add_widget(self.speed_label)
         
         self.sound_btn = Button(
             text="SOUND: ON", font_size='14sp', bold=True,
             background_normal='', background_color=(0.2, 0.8, 0.2, 1),
-            pos_hint={'right': 0.98, 'top': 0.95}, size_hint=(0.2, 0.1)
+            pos_hint={'right': 0.98, 'top': 0.95}, size_hint=(0.15, 0.1)
         )
         self.sound_btn.bind(on_press=self.toggle_sound_setting)
         root.add_widget(self.sound_btn)
+        
+        self.cam_btn = Button(
+            text="CAM: ON", font_size='14sp', bold=True,
+            background_normal='', background_color=(0.2, 0.8, 0.2, 1),
+            pos_hint={'right': 0.81, 'top': 0.95}, size_hint=(0.15, 0.1)
+        )
+        self.cam_btn.bind(on_press=self.toggle_cam_setting)
+        root.add_widget(self.cam_btn)
         
         btn_layout = BoxLayout(
             orientation='horizontal', size_hint=(0.9, 0.12),  
@@ -448,6 +518,10 @@ class SmartBikeApp(App):
     def toggle_sound_setting(self, instance):
         self.dashboard.sound_alert_enabled = not self.dashboard.sound_alert_enabled
         self.update_sound_btn_ui()
+        
+    def toggle_cam_setting(self, instance):
+        current_state = self.dashboard.camera_enabled
+        self.dashboard.toggle_camera_detection_state(not current_state)
 
     def update_sound_btn_ui(self):
         if self.dashboard.sound_alert_enabled:

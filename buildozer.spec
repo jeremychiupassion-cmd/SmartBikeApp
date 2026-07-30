@@ -19,17 +19,8 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-# 關鍵修正：限制 numpy<2.0.0，避開 NumPy 2.x 的 Ninja 編譯衝突，使用穩定的 1.x 配方
-requirements = python3,kivy,plyer,opencv,numpy<2.0.0
-
-# (str) Custom source folders for requirements
-# requirements.source.kivy =
-
-# (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
-
-# (str) Icon of the application
-#icon.filename = %(source.dir)s/data/icon.png
+# 🛡️ 關鍵修正：加入 hostpython3 與 libffi 以啟用穩定的 C-Extension 配方
+requirements = hostpython3,python3,kivy,plyer,opencv,numpy,libffi
 
 # (str) Supported orientations (鎖定橫屏顯示)
 orientation = landscape
@@ -74,6 +65,9 @@ android.enable_androidx = True
 
 # (list) Architecture to build for
 android.archs = arm64-v8a
+
+# 🛡️ 關鍵設定：強制 p4a 使用主線分支配方，避開 Ninja 本地編譯崩潰
+p4a.branch = master
 
 
 #
