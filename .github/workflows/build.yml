@@ -18,7 +18,7 @@ jobs:
       run: sudo chown -R 1000:1000 ${{ github.workspace }}
 
     - name: Build APK with Official Kivy Docker
-      # 🛡️ 終極防護：強制指定 P4A_NUM_CORES=1，一次只跑一個編譯任務，徹底杜絕記憶體耗盡 (OOM) 崩潰
+      # 保持單核心 (P4A_NUM_CORES=1) 防 OOM，版本控制交給 buildozer.spec 處理
       run: |
         docker run --rm \
         -e P4A_NUM_CORES=1 \
