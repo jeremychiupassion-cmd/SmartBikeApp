@@ -54,6 +54,7 @@ if platform == 'android':
 
         @java_method('(I)V')
         def onError(self, error):
+            # 自動重啟語音監聽，確保離線或安靜時不卡死
             self.restart_callback()
         
         @java_method('(Landroid/os/Bundle;)V')
@@ -66,7 +67,11 @@ if platform == 'android':
             
         @java_method('(Landroid/os/Bundle;)V')
         def onPartialResults(self, partialResults):
-            pass
+            # 支援即時辨識結果，提升靈敏度
+            matches = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+            if matches and matches.size() > 0:
+                text = str(matches.get(0))
+                self.callback(text)
 
         @java_method('(ILandroid/os/Bundle;)V')
         def onEvent(self, eventType, params):
@@ -84,7 +89,7 @@ class BikeDashboard(Widget):
         self.mode = 'straight'
         self.anim_step = 0
         self.flash_state = False
-        self.light_color = (1, 0.5, 0)
+        self.light_color = (1.0, 0.5, 0.0) # 標準 RGB (r, g, b) 3-tuple
         
         self.speech_recognizer = None
         self.speech_intent = None
@@ -147,6 +152,7 @@ class BikeDashboard(Widget):
                 self.speech_intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 self.speech_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 self.speech_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-TW")
+                self.speech_intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, True)
                 self.speech_recognizer.startListening(self.speech_intent)
             except Exception:
                 pass
@@ -155,7 +161,7 @@ class BikeDashboard(Widget):
         Clock.schedule_once(lambda dt: self.process_command(text), 0)
 
     def restart_listening_safe(self):
-        Clock.schedule_once(lambda dt: self.restart_listening(), 0.2)
+        Clock.schedule_once(lambda dt: self.restart_listening(), 0.3)
 
     @run_on_ui_thread
     def restart_listening(self):
@@ -167,29 +173,31 @@ class BikeDashboard(Widget):
                 pass
 
     def process_command(self, command):
-        if "左" in command:
+        # 擴充模糊比對，提高語音辨識靈敏度
+        if "左" in command or "向左" in command:
             self.mode = 'left'
-        elif "右" in command:
+        elif "右" in command or "向右" in command:
             self.mode = 'right'
-        elif "正常" in command or "直行" in command:
+        elif "正常" in command or "直行" in command or "前進" in command:
             self.mode = 'straight'
-        elif "開燈" in command:
+        elif "開燈" in command or "亮燈" in command or "頭燈" in command:
             self.toggle_flash(True)
-        elif "關燈" in command:
+        elif "關燈" in command or "熄滅" in command:
             self.toggle_flash(False)
-        elif "紅色" in command:
-            self.set_color((1, 0.1, 0.1))
-        elif "綠色" in command:
-            self.set_color((0.2, 1, 0.2))
-        elif "藍色" in command:
-            self.set_color((0.2, 0.5, 1))
-        elif "白色" in command:
-            self.set_color((1, 1, 1))
-        elif "黃色" in command or "橘色" in command:
-            self.set_color((1, 0.5, 0))
+        elif "紅" in command:
+            self.set_color((1.0, 0.1, 0.1))
+        elif "綠" in command:
+            self.set_color((0.2, 1.0, 0.2))
+        elif "藍" in command:
+            self.set_color((0.2, 0.5, 1.0))
+        elif "白" in command:
+            self.set_color((1.0, 1.0, 1.0))
+        elif "黃" in command or "橘" in command:
+            self.set_color((1.0, 0.5, 0.0))
 
     def set_color(self, color_tuple):
-        self.light_color = color_tuple
+        # 安全機制：限制只解包前 3 個元素 (r, g, b)
+        self.light_color = color_tuple[:3]
 
     @run_on_ui_thread
     def toggle_flash(self, state):
@@ -324,20 +332,21 @@ class SmartBikeApp(App):
         root.add_widget(self.speed_label)
         
         btn_layout = BoxLayout(
-            orientation='horizontal', size_hint=(0.9, 0.08),  
+            orientation='horizontal', size_hint=(0.9, 0.12),  
             pos_hint={'center_x': 0.5, 'y': 0.03}, spacing=10              
         )
         btn_red = Button(text="RED", background_normal='', background_color=(1, 0.2, 0.2, 1))
-        btn_red.bind(on_press=lambda x: self.dashboard.set_color((1, 0.1, 0.1)))
+        btn_red.bind(on_press=lambda x: self.dashboard.set_color((1.0, 0.1, 0.1)))
         
-        btn_green = Button(text="GREEN", background_normal='', background_color=(0.2, 1, 0.2, 1))
-        btn_green.bind(on_press=lambda x: self.dashboard.set_color((0.2, 1, 0.2)))
+        btn_green = Button(text="GREEN", background_normal='', background_color=(0.2, 1.0, 0.2, 1))
+        btn_green.bind(on_press=lambda x: self.dashboard.set_color((0.2, 1.0, 0.2)))
         
-        btn_blue = Button(text="BLUE", background_normal='', background_color=(0.2, 0.5, 1, 1))
-        btn_blue.bind(on_press=lambda x: self.dashboard.set_color((0.2, 0.5, 1, 1)))
+        btn_blue = Button(text="BLUE", background_normal='', background_color=(0.2, 0.5, 1.0, 1))
+        # 修正：傳遞 3 元素 RGB 顏色
+        btn_blue.bind(on_press=lambda x: self.dashboard.set_color((0.2, 0.5, 1.0)))
         
-        btn_orange = Button(text="ORANGE", background_normal='', background_color=(1, 0.5, 0, 1))
-        btn_orange.bind(on_press=lambda x: self.dashboard.set_color((1, 0.5, 0)))
+        btn_orange = Button(text="ORANGE", background_normal='', background_color=(1.0, 0.5, 0.0, 1))
+        btn_orange.bind(on_press=lambda x: self.dashboard.set_color((1.0, 0.5, 0.0)))
         
         btn_layout.add_widget(btn_red)
         btn_layout.add_widget(btn_green)

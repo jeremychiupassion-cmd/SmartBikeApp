@@ -21,11 +21,11 @@ source.include_exts = py,png,jpg,kv,atlas,ttf
 # (list) Application requirements
 requirements = python3,kivy,plyer
 
-# (str) Supported orientations (one of landscape, sensorLandscape, portrait or all)
-orientation = portrait
+# (str) 橫屏顯示設定
+orientation = landscape
 
 # (bool) Indicate if the application should be fullscreen or not
-fullscreen = 0
+fullscreen = 1
 
 
 #
