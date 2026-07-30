@@ -17,12 +17,11 @@ jobs:
     - name: Fix permissions for Buildozer Docker
       run: sudo chown -R 1000:1000 ${{ github.workspace }}
 
-    - name: Build APK with Official Kivy Docker (Multi-Core)
-      # 🚀 終極修復：同時傳入「4 核心加速」與「NumPy 版本鎖」，確保 Docker 內編譯順暢
+    - name: Build APK with Official Kivy Docker
+      # 🛡️ 終極防護：強制指定 P4A_NUM_CORES=1，一次只跑一個編譯任務，徹底杜絕記憶體耗盡 (OOM) 崩潰
       run: |
         docker run --rm \
-        -e P4A_NUM_CORES=4 \
-        -e VERSION_numpy=v1.25.2 \
+        -e P4A_NUM_CORES=1 \
         -v ${{ github.workspace }}:/home/user/hostcwd \
         kivy/buildozer:latest android debug
 

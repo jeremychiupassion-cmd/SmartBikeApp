@@ -19,7 +19,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-# 回歸官方配方，環境變數已在 build.yml 鎖定
+# 採用官方純淨配方
 requirements = python3,kivy,plyer,numpy,opencv
 
 # (str) Supported orientations
@@ -39,9 +39,10 @@ android.skip_update = False
 android.enable_androidx = True
 android.archs = arm64-v8a
 
+# 採用官方最穩定的 master 分支
 p4a.branch = master
 
 [buildozer]
-# 🛡️ 保持為 1 (Info)，避免幾萬行 C++ 編譯日誌塞爆 GitHub 被強制截斷
-log_level = 1
+# 保持為 2 (Debug)，留下完整的追蹤紀錄
+log_level = 2
 warn_on_root = 1
