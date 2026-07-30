@@ -38,9 +38,9 @@ jobs:
         pip install "Cython==0.29.33" buildozer
 
     - name: Build APK with Buildozer
-      # 🛡️ 關鍵補回：強制降級 NumPy 版本，徹底封殺 Ninja 編譯錯誤
+      # 🛡️ 關鍵修正：Git Tag 前面加 v，即 v1.25.2，解決 git pathspec 找不到檔名的問題！
       run: |
-        export VERSION_numpy=1.25.2
+        export VERSION_numpy=v1.25.2
         yes | buildozer android debug
 
     - name: Upload APK Artifact
