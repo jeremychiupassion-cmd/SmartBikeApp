@@ -19,8 +19,8 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-# 關鍵調整：使用預編譯輪子包，避開 C++ 原始碼重頭編譯
-requirements = python3,kivy==2.3.0,plyer,opencv-python-headless,numpy
+# 回歸 p4a 官方標準 Recipe 名稱
+requirements = python3,kivy,plyer,opencv,numpy
 
 # (str) Supported orientations
 orientation = landscape
@@ -32,15 +32,12 @@ fullscreen = 1
 android.permissions = INTERNET,RECORD_AUDIO,CAMERA,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,MODIFY_AUDIO_SETTINGS
 android.wakelock = True
 android.accept_sdk_license = True
-android.api = 33
+android.api = 31
 android.minapi = 24
 android.ndk = 25b
 android.skip_update = False
 android.enable_androidx = True
 android.archs = arm64-v8a
-
-# 採用最穩定的 release 分支
-p4a.branch = master
 
 [buildozer]
 log_level = 2
