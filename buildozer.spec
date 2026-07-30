@@ -10,18 +10,28 @@ package.name = smartbikeapp
 package.domain = org.example
 
 # (str) Application version
-version = 0.1
+version = 0.2
 
 # (str) Source code where the main.py live
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,ttf
+source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-requirements = python3,kivy,plyer
+# 關鍵修正：改用 opencv 與 numpy 觸發 p4a 原生 NDK 編譯，避免 PC 版混入造成閃退
+requirements = python3,kivy,plyer,opencv,numpy
 
-# (str) 橫屏顯示設定
+# (str) Custom source folders for requirements
+# requirements.source.kivy =
+
+# (str) Presplash of the application
+#presplash.filename = %(source.dir)s/data/presplash.png
+
+# (str) Icon of the application
+#icon.filename = %(source.dir)s/data/icon.png
+
+# (str) Supported orientations (鎖定橫屏顯示)
 orientation = landscape
 
 # (bool) Indicate if the application should be fullscreen or not
@@ -32,10 +42,10 @@ fullscreen = 1
 # Android specific
 #
 
-# (list) Permissions
+# (list) Permissions (宣告錄音、相機、GPS 定位與網路權限)
 android.permissions = INTERNET,RECORD_AUDIO,CAMERA,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION
 
-# (bool) 啟用螢幕常亮 (防止騎車時黑屏)
+# (bool) 啟用螢幕常亮 (防止騎車時自動黑屏)
 android.wakelock = True
 
 # (bool) Indicate if you want to accept SDK license automatically
@@ -62,7 +72,7 @@ android.sdk_path =
 # (bool) Enable AndroidX support
 android.enable_androidx = True
 
-# (list) Architecture to build for
+# (list) Architecture to build for (現代 64 位元晶片架構)
 android.archs = arm64-v8a
 
 
@@ -72,7 +82,7 @@ android.archs = arm64-v8a
 
 [buildozer]
 
-# (int) Log level
+# (int) Log level (0 = error only, 1 = info, 2 = debug)
 log_level = 2
 
 # (int) Display warning if buildozer is run as root
