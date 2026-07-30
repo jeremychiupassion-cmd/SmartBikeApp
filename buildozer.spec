@@ -19,7 +19,6 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-# 回歸最純淨的官方配方，交由 build.yml 的環境變數來控制底層版本
 requirements = python3,kivy,plyer,numpy,opencv
 
 # (str) Supported orientations
@@ -39,9 +38,9 @@ android.skip_update = False
 android.enable_androidx = True
 android.archs = arm64-v8a
 
-# 採用 p4a 開發分支，以獲得最新的 Android 12+ 工具鏈修復
 p4a.branch = develop
 
 [buildozer]
-log_level = 2
+# 關鍵修正：改為 1 (Info)，避免產生數萬行 C++ 輸出導致 GitHub 截斷與 Timeout
+log_level = 1
 warn_on_root = 1
