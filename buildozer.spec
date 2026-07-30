@@ -19,7 +19,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-# 回歸最標準的官方配方，順序保持 numpy 先於 opencv 編譯
+# 回歸官方配方，環境變數已在 build.yml 鎖定
 requirements = python3,kivy,plyer,numpy,opencv
 
 # (str) Supported orientations
@@ -39,10 +39,9 @@ android.skip_update = False
 android.enable_androidx = True
 android.archs = arm64-v8a
 
-# 採用官方最穩定的 master 分支
 p4a.branch = master
 
 [buildozer]
-# 保持為 2 (Debug)，如果成功 GitHub 會自動截斷 Log 但不影響 APK 產出；若失敗則能保留完整死因
-log_level = 2
+# 🛡️ 保持為 1 (Info)，避免幾萬行 C++ 編譯日誌塞爆 GitHub 被強制截斷
+log_level = 1
 warn_on_root = 1

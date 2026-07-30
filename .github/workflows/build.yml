@@ -15,16 +15,18 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Fix permissions for Buildozer Docker
-      # 官方 Docker 預設使用 uid 1000，需先轉換目錄權限避免寫入失敗
       run: sudo chown -R 1000:1000 ${{ github.workspace }}
 
-    - name: Build APK with Official Kivy Docker
-      # 直接呼叫官方容器進行打包，免除所有環境變數與依賴安裝煩惱
+    - name: Build APK with Official Kivy Docker (Multi-Core)
+      # 🚀 終極修復：同時傳入「4 核心加速」與「NumPy 版本鎖」，確保 Docker 內編譯順暢
       run: |
-        docker run --rm -v ${{ github.workspace }}:/home/user/hostcwd kivy/buildozer:latest android debug
+        docker run --rm \
+        -e P4A_NUM_CORES=4 \
+        -e VERSION_numpy=v1.25.2 \
+        -v ${{ github.workspace }}:/home/user/hostcwd \
+        kivy/buildozer:latest android debug
 
     - name: Restore permissions
-      # 打包完成後將權限還原給 GitHub Runner，確保後續上傳能讀取檔案
       if: always()
       run: sudo chown -R $(id -u):$(id -g) ${{ github.workspace }}
 
