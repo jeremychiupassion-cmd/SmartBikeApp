@@ -8,43 +8,25 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+    - name: Fix permissions for Buildozer Docker
+      # 官方 Docker 預設使用 uid 1000，需先轉換目錄權限避免寫入失敗
+      run: sudo chown -R 1000:1000 ${{ github.workspace }}
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install System Dependencies
+    - name: Build APK with Official Kivy Docker
+      # 直接呼叫官方容器進行打包，免除所有環境變數與依賴安裝煩惱
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential ccache git python3-pip python3-setuptools \
-          libffi-dev libssl-dev lld libltdl-dev autoconf automake libtool \
-          zip unzip tar gzip bzip2 pkg-config zlib1g-dev cmake ninja-build gfortran libopenblas-dev
+        docker run --rm -v ${{ github.workspace }}:/home/user/hostcwd kivy/buildozer:latest android debug
 
-    - name: Install Python Build Dependencies
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        pip install "Cython<3.0.0" buildozer
-
-    - name: Build APK with Buildozer
-      # 🚀 終極防護與加速：
-      # 1. 鎖定 NumPy v1.25.2 避開 Meson 構建錯誤
-      # 2. 啟用 4 核心平行編譯，把 OpenCV 的編譯時間從 20 分鐘壓到 5 分鐘內
-      run: |
-        export VERSION_numpy=v1.25.2
-        export P4A_NUM_CORES=4
-        yes | buildozer android debug
+    - name: Restore permissions
+      # 打包完成後將權限還原給 GitHub Runner，確保後續上傳能讀取檔案
+      if: always()
+      run: sudo chown -R $(id -u):$(id -g) ${{ github.workspace }}
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
