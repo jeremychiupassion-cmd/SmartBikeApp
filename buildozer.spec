@@ -19,10 +19,19 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-# 關鍵修正：還原為原生配方名稱 (不加 == 避免 git pathspec 錯誤)
-requirements = python3,kivy,plyer,opencv,numpy
+# 關鍵修正：限制 numpy<2.0.0，避開 NumPy 2.x 的 Ninja 編譯衝突，使用穩定的 1.x 配方
+requirements = python3,kivy,plyer,opencv,numpy<2.0.0
 
-# (str) Supported orientations (橫屏顯示)
+# (str) Custom source folders for requirements
+# requirements.source.kivy =
+
+# (str) Presplash of the application
+#presplash.filename = %(source.dir)s/data/presplash.png
+
+# (str) Icon of the application
+#icon.filename = %(source.dir)s/data/icon.png
+
+# (str) Supported orientations (鎖定橫屏顯示)
 orientation = landscape
 
 # (bool) Indicate if the application should be fullscreen or not
@@ -43,7 +52,6 @@ android.wakelock = True
 android.accept_sdk_license = True
 
 # (int) Target Android API
-# 關鍵修正：切換至 API 31，這是目前 p4a + opencv + numpy 相容性最佳的 API 版本
 android.api = 31
 
 # (int) Minimum API your APK will support
