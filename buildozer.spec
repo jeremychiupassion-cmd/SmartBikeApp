@@ -18,8 +18,8 @@ source.dir = .
 # (list) Source files to include
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
-# 🛡️ 關鍵修正 1：直接在配方中強制將 numpy 鎖定在 1.26.4，徹底封殺 NumPy 2.0 帶來的 C++ 編譯崩潰
-requirements = python3,kivy,plyer,numpy==1.26.4,opencv
+# 🛡️ 乾淨配方：不鎖定任何版本號，全權交給 p4a develop 分支內部處理
+requirements = python3,kivy,plyer,numpy,opencv
 
 # (str) Supported orientations
 orientation = landscape
@@ -38,10 +38,10 @@ android.skip_update = False
 android.enable_androidx = True
 android.archs = arm64-v8a
 
-# 🛡️ 關鍵修正 2：改用 develop 分支，這裡擁有最新的 OpenCV 下載修復與相容性補丁
+# 🛡️ 核心修復：使用最新的 develop 分支，裡面有最新修復的 OpenCV 與 NumPy 配方
 p4a.branch = develop
 
 [buildozer]
-# 保持為 2，若有問題才看得到詳細死因
-log_level = 2
+# 🛡️ 改回 1 (Info)，避免幾十萬行的 C++ 編譯細節癱瘓 GitHub Actions 輸出介面
+log_level = 1
 warn_on_root = 1
