@@ -14,11 +14,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Build APK with Buildozer Action
-      uses: ArtemSzymanskii/buildozer-action@v1.2
+    - name: Build APK with Official Kivy Buildozer Docker
+      uses: addunc/buildozer-action@v1
       with:
-        workdir: .
-        buildozer_version: stable
+        command: buildozer android debug
+        submodule: false
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
