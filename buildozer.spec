@@ -19,6 +19,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
+# 🛡️ 終極修正：必須使用 p4a 內建的 opencv 與 numpy 配方，絕不能用 headless
 requirements = python3,kivy,plyer,numpy,opencv
 
 # (str) Supported orientations
@@ -38,9 +39,10 @@ android.skip_update = False
 android.enable_androidx = True
 android.archs = arm64-v8a
 
-p4a.branch = develop
+# 採用官方最穩定的 master 分支
+p4a.branch = master
 
 [buildozer]
-# 關鍵修正：改為 1 (Info)，避免產生數萬行 C++ 輸出導致 GitHub 截斷與 Timeout
+# 保持為 1，避免幾萬行的 C++ 編譯 Log 讓 GitHub Actions 崩潰截斷
 log_level = 1
 warn_on_root = 1

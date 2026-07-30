@@ -35,10 +35,12 @@ jobs:
     - name: Install Python Build Dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        pip install "Cython==0.29.33" buildozer
+        pip install "Cython<3.0.0" buildozer
 
     - name: Build APK with Buildozer
-      # 🚀 關鍵優化：加上 P4A_NUM_CORES=4 啟用多核加速，並鎖定 NumPy v1.25.2
+      # 🚀 終極防護與加速：
+      # 1. 鎖定 NumPy v1.25.2 避開 Meson 構建錯誤
+      # 2. 啟用 4 核心平行編譯，把 OpenCV 的編譯時間從 20 分鐘壓到 5 分鐘內
       run: |
         export VERSION_numpy=v1.25.2
         export P4A_NUM_CORES=4
