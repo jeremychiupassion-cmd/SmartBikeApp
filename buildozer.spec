@@ -19,8 +19,8 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,wav,mp3
 
 # (list) Application requirements
-# 🛡️ 回歸官方配方名稱，不加任何版本號，把版本控制交給 GitHub Actions
-requirements = hostpython3,python3,kivy,plyer,numpy,opencv,libffi
+# 關鍵修正：還原為乾淨的標準 5 大元件
+requirements = python3,kivy,plyer,opencv,numpy
 
 # (str) Supported orientations
 orientation = landscape
@@ -39,8 +39,8 @@ android.skip_update = False
 android.enable_androidx = True
 android.archs = arm64-v8a
 
-# 採用官方穩定分支
-p4a.branch = master
+# 關鍵設定：切換至 develop 分支以獲得最新的 Android API 31 相容性修復
+p4a.branch = develop
 
 [buildozer]
 log_level = 2

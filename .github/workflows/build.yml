@@ -34,15 +34,12 @@ jobs:
           gfortran libopenblas-dev ninja-build cmake
 
     - name: Install Python dependencies
-      # 鎖定 Cython 版本，避免與 NumPy 1.x 發生衝突
       run: |
         python -m pip install --upgrade pip
-        pip install "Cython==0.29.33" buildozer
+        pip install buildozer "Cython<3.0.0"
 
     - name: Build APK with Buildozer
-      # 🛡️ 終極防護：在此宣告環境變數，強制降級 NumPy 到 1.25.2，避開所有 Ninja 衝突！
       run: |
-        export VERSION_numpy=1.25.2
         yes | buildozer android debug
 
     - name: Upload APK Artifact
